@@ -13,15 +13,15 @@ Both options offer a subpar UX for your users. Alternatively, you could generate
 
 **Forwarding addresses is a system for generating counterfactual addresses that can be assigned to each user and immutably tied to your primary account. Sent payments to a forwarding address can be permissionlessly triggered to always sweep to the linked account.**
 
-## Usage
-
-Before being able to run any command, you need to create a .env file and set your environment variables. You can follow the example in .env.example.
-
 ## Deployments
 
 ```
 TBA
 ```
+
+## Usage
+
+Before being able to run any command, you need to create a .env file and set your environment variables. You can follow the example in .env.example.
 
 ### Install dependencies
 
