@@ -1,6 +1,6 @@
 # Forwarding Address
 
-A lightweight protocol for enabling attribution of onchain payments through deterministically generated addresses tied to a primary receiver.
+A lightweight protocol for enabling attribution of onchain payments through deterministically generated addresses tied to a primary account.
 
 ## Background
 
