@@ -15,9 +15,11 @@ Both options offer a subpar UX for your users. Alternatively, you could generate
 
 ## Deployments
 
-```
-TBA
-```
+All contracts are deployed deterministically with the following addresses.
+
+| Contract                 | Address                                      |
+| ------------------------ | -------------------------------------------- |
+| ForwardingAddressFactory | `0x6f6Ec2052C7e25953F88DbA527c88897888Ed022` |
 
 ## Usage
 
@@ -39,4 +41,10 @@ $ forge build
 
 ```shell
 $ forge test
+```
+
+### Deploy
+
+```shell
+source .env && forge script script/DeployForwardingAddressFactory.s.sol --rpc-url $ETH_RPC_URL --ledger --verify --broadcast
 ```
