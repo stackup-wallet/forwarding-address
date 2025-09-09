@@ -19,7 +19,7 @@ All contracts are deployed deterministically with the following addresses.
 
 | Contract                 | Address                                      |
 | ------------------------ | -------------------------------------------- |
-| ForwardingAddressFactory | `0x6f6Ec2052C7e25953F88DbA527c88897888Ed022` |
+| ForwardingAddressFactory | `0xb15dcf07aE4bA9423c9ee0Aba58773C9fd7ec293` |
 
 ## Usage
 
