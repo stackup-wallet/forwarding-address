@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuardTransient} from "@openzeppelin/contracts/utils/ReentrancyGuardTransient.sol";
 import {Initializable} from "solady/utils/Initializable.sol";
-import {IERC20} from "forge-std/interfaces/IERC20.sol";
 
 contract ForwardingAddress is ReentrancyGuardTransient, Initializable {
+    using SafeERC20 for IERC20;
+
     error FailedETHWithdraw(address receiver, address token);
 
     address payable public receiver;
@@ -25,7 +28,7 @@ contract ForwardingAddress is ReentrancyGuardTransient, Initializable {
             (bool success,) = receiver.call{value: address(this).balance}("");
             require(success, FailedETHWithdraw(receiver, token));
         } else {
-            IERC20(token).transfer(receiver, IERC20(token).balanceOf(address(this)));
+            IERC20(token).safeTransfer(receiver, IERC20(token).balanceOf(address(this)));
         }
     }
 }
