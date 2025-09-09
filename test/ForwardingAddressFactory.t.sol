@@ -2,7 +2,11 @@
 pragma solidity ^0.8.28;
 
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
-import {IERC20} from "forge-std/interfaces/IERC20.sol";
+import {ERC20NoReturnMock} from "@openzeppelin/contracts/mocks/token/ERC20NoReturnMock.sol";
+import {ERC20ReturnFalseMock} from "@openzeppelin/contracts/mocks/token/ERC20ReturnFalseMock.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Test} from "forge-std/Test.sol";
 
 import {ForwardingAddress} from "../src/ForwardingAddress.sol";
@@ -10,13 +14,33 @@ import {ForwardingAddressFactory} from "../src/ForwardingAddressFactory.sol";
 
 contract NonPayableReceiver {}
 
+contract ERC20NoReturn is ERC20NoReturnMock {
+    constructor() ERC20("ERC20Mock", "E20M") {}
+
+    function mint(address account, uint256 amount) external {
+        _mint(account, amount);
+    }
+}
+
+contract ERC20ReturnFalse is ERC20ReturnFalseMock {
+    constructor() ERC20("ERC20Mock", "E20M") {}
+
+    function mint(address account, uint256 amount) external {
+        _mint(account, amount);
+    }
+}
+
 contract ForwardingAddressFactoryTest is Test {
     ForwardingAddressFactory public factory;
     ERC20Mock public erc20Mock;
+    ERC20NoReturn public erc20NoReturn;
+    ERC20ReturnFalse public erc20ReturnFalse;
 
     function setUp() public {
         factory = new ForwardingAddressFactory();
         erc20Mock = new ERC20Mock();
+        erc20NoReturn = new ERC20NoReturn();
+        erc20ReturnFalse = new ERC20ReturnFalse();
     }
 
     function testFuzz_createForwardingAddress(bytes32 salt) public {
@@ -106,6 +130,37 @@ contract ForwardingAddressFactoryTest is Test {
         factory.sweepFor(payable(receiver), salt, tokens);
         assertEq(IERC20(address(erc20Mock)).balanceOf(receiver), amount);
         assertEq(IERC20(address(erc20Mock)).balanceOf(forwarder), 0);
+    }
+
+    function testFuzz_sweepForERC20NoReturn(bytes32 salt, uint256 amount) public {
+        (address receiver,) = makeAddrAndKey("receiver");
+
+        address forwarder = factory.getAddress(receiver, salt);
+        erc20NoReturn.mint(forwarder, amount);
+        assertEq(IERC20(address(erc20NoReturn)).balanceOf(receiver), 0);
+        assertEq(IERC20(address(erc20NoReturn)).balanceOf(forwarder), amount);
+
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(erc20NoReturn);
+        factory.sweepFor(payable(receiver), salt, tokens);
+        assertEq(IERC20(address(erc20NoReturn)).balanceOf(receiver), amount);
+        assertEq(IERC20(address(erc20NoReturn)).balanceOf(forwarder), 0);
+    }
+
+    function testFuzz_sweepForERC20ReturnFalse(bytes32 salt, uint256 amount) public {
+        (address receiver,) = makeAddrAndKey("receiver");
+
+        address forwarder = factory.getAddress(receiver, salt);
+        erc20ReturnFalse.mint(forwarder, amount);
+        assertEq(IERC20(address(erc20ReturnFalse)).balanceOf(receiver), 0);
+        assertEq(IERC20(address(erc20ReturnFalse)).balanceOf(forwarder), amount);
+
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(erc20ReturnFalse);
+        vm.expectRevert(abi.encodeWithSelector(SafeERC20.SafeERC20FailedOperation.selector, tokens[0]));
+        factory.sweepFor(payable(receiver), salt, tokens);
+        assertEq(IERC20(address(erc20ReturnFalse)).balanceOf(receiver), 0);
+        assertEq(IERC20(address(erc20ReturnFalse)).balanceOf(forwarder), amount);
     }
 
     function testFuzz_sweepForMulti(bytes32 salt, uint256 amount) public {
